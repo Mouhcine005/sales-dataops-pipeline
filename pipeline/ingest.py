@@ -3,7 +3,7 @@ import duckdb
 from pathlib import Path
 
 csv_path = Path("../data/ventes.csv")
-db_path = "ventes.duckdb"
+db_path = r"C:\Users\dell\sales-dataops-pipeline\ventes.duckdb"
 
 # Lecture et chargement dans DuckDB
 df = pd.read_csv(csv_path)

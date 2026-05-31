@@ -1,6 +1,6 @@
 import duckdb
 
-db_path = "ventes.duckdb"
+db_path = r"C:\Users\dell\sales-dataops-pipeline\ventes.duckdb"
 required_columns = {"date", "produit", "categorie", "quantite", "prix_unitaire", "ville"}
 
 con = duckdb.connect(db_path)
