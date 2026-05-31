@@ -1,9 +1,12 @@
 import duckdb
+from pathlib import Path
 
-db_path = r"C:\Users\dell\sales-dataops-pipeline\ventes.duckdb"
+BASE_DIR = Path(__file__).parent.parent
+db_path = BASE_DIR / "ventes.duckdb"
+
 required_columns = {"date", "produit", "categorie", "quantite", "prix_unitaire", "ville"}
 
-con = duckdb.connect(db_path)
+con = duckdb.connect(str(db_path))
 
 # Vérification des colonnes
 columns = con.execute("DESCRIBE ventes_raw").fetchall()

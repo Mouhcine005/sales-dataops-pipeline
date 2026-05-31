@@ -3,5 +3,5 @@ dbt_pipeline:
   outputs:
     dev:
       type: duckdb
-      path: C:\Users\dell\sales-dataops-pipeline\ventes.duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH') }}"
       threads: 1
