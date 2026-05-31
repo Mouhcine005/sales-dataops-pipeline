@@ -1,30 +1,43 @@
 from dagster import job, op
 import os
+import sys
+
+# Récupère automatiquement le chemin exact du Python de l'environnement virtuel actif
+VENV_PYTHON = sys.executable
 
 @op
 def ingest():
-    exit_code = os.system("python pipeline/ingest.py")
-    if exit_code != 0: raise Exception("L'ingestion a échoué")
+    """Étape 1 : Ingestion des données CSV."""
+    print(f"Exécution de l'ingestion avec : {VENV_PYTHON}")
+    exit_code = os.system(f'"{VENV_PYTHON}" pipeline/ingest.py')
+    if exit_code != 0: 
+        raise Exception("L'ingestion a échoué")
 
 @op
-def validate(context, ingest_result=None):
-    exit_code = os.system("python pipeline/validate.py")
-    if exit_code != 0: raise Exception("La validation a échoué")
+def validate(ingest_status):
+    """Étape 2 : Validation du schéma."""
+    exit_code = os.system(f'"{VENV_PYTHON}" pipeline/validate.py')
+    if exit_code != 0: 
+        raise Exception("La validation a échoué")
 
 @op
-def transform(context, validate_result=None):
-    exit_code = os.system("cd dbt_pipeline && dbt run --profiles-dir .")
-    if exit_code != 0: raise Exception("La transformation dbt a échoué")
+def transform(validate_status):
+    """Étape 3 : Exécution des modèles dbt."""
+    # Utilise le dbt installé dans l'environnement virtuel pour Windows
+    dbt_path = os.path.join(os.path.dirname(VENV_PYTHON), "dbt")
+    exit_code = os.system(f'cd dbt_pipeline && "{dbt_path}" run --profiles-dir .')
+    if exit_code != 0: 
+        raise Exception("La transformation dbt a échoué")
 
 @op
-def test_data(context, transform_result=None):
-    exit_code = os.system("cd dbt_pipeline && dbt test --profiles-dir .")
-    if exit_code != 0: raise Exception("Les tests dbt ont échoué")
+def test_data(transform_status):
+    """Étape 4 : Exécution des tests dbt."""
+    dbt_path = os.path.join(os.path.dirname(VENV_PYTHON), "dbt")
+    exit_code = os.system(f'cd dbt_pipeline && "{dbt_path}" test --profiles-dir .')
+    if exit_code != 0: 
+        raise Exception("Les tests dbt ont échoué")
 
 @job
 def ventes_pipeline():
-    # Enchaînement séquentiel des dépendances
-    res_ingest = ingest()
-    res_validate = validate(res_ingest)
-    res_transform = transform(res_validate)
-    test_data(res_transform)
+    """Définition du graphe de dépendances (Pipeline DAG)."""
+    test_data(transform(validate(ingest())))
