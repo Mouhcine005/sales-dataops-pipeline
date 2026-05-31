@@ -18,14 +18,14 @@ def ingest():
         raise Exception("L'ingestion a échoué")
 
 @op(ins={"ingest_status": In(Nothing)})
-def validate(ingest_status):
+def validate():
     """Étape 2 : Validation du schéma."""
     exit_code = run_script(f'"{VENV_PYTHON}" pipeline/validate.py')
     if exit_code != 0:
         raise Exception("La validation a échoué")
 
 @op(ins={"validate_status": In(Nothing)})
-def transform(validate_status):
+def transform():
     """Étape 3 : Exécution des modèles dbt."""
     dbt_path = os.path.join(os.path.dirname(VENV_PYTHON), "dbt")
     exit_code = run_script(f'cd dbt_pipeline && "{dbt_path}" run --profiles-dir .')
@@ -33,7 +33,7 @@ def transform(validate_status):
         raise Exception("La transformation dbt a échoué")
 
 @op(ins={"transform_status": In(Nothing)})
-def test_data(transform_status):
+def test_data():
     """Étape 4 : Exécution des tests dbt."""
     dbt_path = os.path.join(os.path.dirname(VENV_PYTHON), "dbt")
     exit_code = run_script(f'cd dbt_pipeline && "{dbt_path}" test --profiles-dir .')
